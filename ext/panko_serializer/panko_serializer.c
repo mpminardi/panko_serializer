@@ -142,8 +142,10 @@ void serialize_relationship(VALUE object, VALUE str_writer, Association associat
     serializer = association->descriptor->serializer;
     link_func = association->link_func_sym;
 
+    rb_ivar_set(serializer, object_id, object);
     write_value(str_writer, TYPE_STR, rb_funcall(serializer, type_id, 0), Qfalse);
     write_value(str_writer, ID_STR, rb_funcall(serializer, id_id, 0), Qfalse);
+    rb_ivar_set(serializer, object_id, Qnil);
 
     if (!NIL_P(association->link_func_sym)) {
       volatile VALUE result;
@@ -177,6 +179,43 @@ void serialize_has_one_associations_jsonapi(VALUE object, VALUE str_writer,
       serialize_relationship(object, str_writer, association, container_serializer);
     }
   }
+}
+
+void serialize_relationships_internal(VALUE objects, VALUE str_writer, Association association, VALUE original_serializer) {
+    rb_funcall(str_writer, push_array_id, 1, association->name_str);
+
+    volatile VALUE link_func, serializer;
+
+    serializer = association->descriptor->serializer;
+    link_func = association->link_func_sym;
+
+    if (!RB_TYPE_P(objects, T_ARRAY)) {
+      objects = rb_funcall(objects, to_a_id, 0);
+    }
+
+
+    long i;
+    for (i = 0; i < RARRAY_LEN(objects); i++) {
+      volatile VALUE object = RARRAY_AREF(objects, i);
+      rb_ivar_set(original_serializer, object_id, object);
+      write_value(str_writer, TYPE_STR, rb_funcall(serializer, type_id, 0), Qfalse);
+      write_value(str_writer, ID_STR, rb_funcall(serializer, id_id, 0), Qfalse);
+
+      if (!NIL_P(association->link_func_sym)) {
+        volatile VALUE result;
+
+
+        result = rb_funcall(original_serializer, association->link_func_id, 0);
+        if (result != SKIP) {
+          // TODO:
+          write_value(str_writer, LINKS_STR, result, Qfalse);
+        }
+
+      }
+      rb_ivar_set(original_serializer, object_id, Qnil);
+    }
+
+    rb_funcall(str_writer, pop_id, 0);
 }
 
 void serialize_has_many_associations_jsonapi(VALUE object, VALUE str_writer,
@@ -274,8 +313,10 @@ VALUE serialize_relationships(VALUE object , VALUE str_writer, SerializationDesc
 
 VALUE serialize_object_jsonapi_internal(VALUE object, VALUE str_writer,
                        SerializationDescriptor descriptor) {
+  rb_ivar_set(descriptor->serializer, object_id, object);
   write_value(str_writer, ID_STR, rb_funcall(descriptor->serializer, id_id, 0), Qfalse);
   write_value(str_writer, TYPE_STR, rb_funcall(descriptor->serializer, type_id, 0), Qfalse);
+  rb_ivar_set(descriptor->serializer, object_id, Qnil);
 
   serialize_attributes(object, str_writer, descriptor);
 
@@ -306,7 +347,7 @@ VALUE serialize_objects_jsonapi(VALUE key, VALUE objects, VALUE str_writer,
                         SerializationDescriptor descriptor) {
   long i;
 
-  rb_funcall(str_writer, push_object_id, 1, Qnil);
+  rb_funcall(str_writer, push_array_id, 1, key);
   rb_funcall(str_writer, push_object_id, 1, DATA_STR);
 
   if (!RB_TYPE_P(objects, T_ARRAY)) {
