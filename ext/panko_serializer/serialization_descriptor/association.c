@@ -12,6 +12,8 @@ static void association_free(void* ptr) {
   association->name_id = 0;
   association->name_sym = Qnil;
   association->rb_descriptor = Qnil;
+  association->link_func_sym = Qnil;
+  association->link_func_id = 0;
 
   if (!association->descriptor || association->descriptor != NULL) {
     association->descriptor = NULL;
@@ -28,6 +30,10 @@ void association_mark(Association data) {
   if (data->descriptor != NULL) {
     sd_mark(data->descriptor);
   }
+
+  if (data->link_func_sym != NULL) {
+    rb_gc_mark(data->link_func_sym);
+  }
 }
 
 static VALUE association_new(int argc, VALUE* argv, VALUE self) {
@@ -39,8 +45,12 @@ static VALUE association_new(int argc, VALUE* argv, VALUE self) {
   association->name_sym = argv[0];
   association->name_str = argv[1];
   association->rb_descriptor = argv[2];
+  association->link_func_sym = argv[3]; // TODO: free?
 
   association->name_id = rb_intern_str(rb_sym2str(association->name_sym));
+  if (!NIL_P(association->link_func_sym) && argc == 4) {
+    association->link_func_id = rb_intern_str(rb_sym2str(association->link_func_sym));
+  }
   association->descriptor = sd_read(association->rb_descriptor);
 
   return Data_Wrap_Struct(cAssociation, association_mark, association_free,
@@ -59,6 +69,11 @@ VALUE association_name_sym_ref(VALUE self) {
 VALUE association_name_str_ref(VALUE self) {
   Association association = (Association)DATA_PTR(self);
   return association->name_str;
+}
+
+VALUE association_link_func_sym_ref(VALUE self) {
+  Association association = (Association)DATA_PTR(self);
+  return association->link_func_sym;
 }
 
 VALUE association_descriptor_ref(VALUE self) {
@@ -84,6 +99,7 @@ void panko_init_association(VALUE mPanko) {
 
   rb_define_method(cAssociation, "name_sym", association_name_sym_ref, 0);
   rb_define_method(cAssociation, "name_str", association_name_str_ref, 0);
+  rb_define_method(cAssociation, "link_func_sym", association_link_func_sym_ref, 0);
   rb_define_method(cAssociation, "descriptor", association_descriptor_ref, 0);
   rb_define_method(cAssociation, "descriptor=", association_decriptor_aset, 1);
 }

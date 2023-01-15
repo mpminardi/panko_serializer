@@ -33,6 +33,12 @@ end
 module Panko
   class Serializer
     SKIP = Object.new.freeze
+    DATA_STR = -"data"
+    ATTRIBUTES_STR = -"attributes"
+    TYPE_STR = -"type"
+    RELATIONSHIPS_STR = -"relationships"
+    ID_STR = -"id"
+    LINKS_STR = -"links"
 
     class << self
       def inherited(base)
@@ -46,6 +52,8 @@ module Panko
 
           base._descriptor.has_many_associations = []
           base._descriptor.has_one_associations = []
+
+          base._descriptor.links = []
         else
           base._descriptor = Panko::SerializationDescriptor.duplicate(_descriptor)
         end
@@ -64,13 +72,23 @@ module Panko
         end
       end
 
+      def links(*attrs)
+        @_descriptor.links.push(*attrs.map { |attr| Attribute.create(attr) }).uniq!
+      end
+
       def method_added(method)
         super(method)
+
+        puts "ADDED #{method} for #{@_descriptor}"
 
         return if @_descriptor.nil?
 
         deleted_attr = @_descriptor.attributes.delete(method)
         @_descriptor.method_fields << Attribute.create(method) unless deleted_attr.nil?
+
+        # TODO: might need separate lists here
+        deleted_link = @_descriptor.links.delete(method)
+        @_descriptor.links << Attribute.create(method) unless deleted_link.nil?
       end
 
       def has_one(name, options = {})
@@ -82,10 +100,12 @@ module Panko
 
         raise "Can't find serializer for #{self.name}.#{name} has_one relationship." if serializer_const.nil?
 
+        # TODO: links func here?
         @_descriptor.has_one_associations << Panko::Association.new(
           name,
           options.fetch(:name, name).to_s,
-          Panko::SerializationDescriptor.build(serializer_const, options)
+          Panko::SerializationDescriptor.build(serializer_const, options),
+          options[:link_func]
         )
       end
 
@@ -98,10 +118,12 @@ module Panko
 
         raise "Can't find serializer for #{self.name}.#{name} has_many relationship." if serializer_const.nil?
 
+        # TODO: linkls func here?
         @_descriptor.has_many_associations << Panko::Association.new(
           name,
           options.fetch(:name, name).to_s,
-          Panko::SerializationDescriptor.build(serializer_const, options)
+          Panko::SerializationDescriptor.build(serializer_const, options),
+          options[:link_func]
         )
       end
     end
@@ -134,7 +156,18 @@ module Panko
       serialize_with_writer(object, Oj::StringWriter.new(mode: :rails)).to_s
     end
 
+    def serialize_to_json_api(object)
+      serialize_with_writer_jsonapi(object, Oj::StringWriter.new(mode: :rails)).to_s
+    end
+
     private
+
+    def serialize_with_writer_jsonapi(object, writer)
+      raise ArgumentError.new("Panko::Serializer instances are single-use") if @used
+      Panko.serialize_object_jsonapi(object, writer, @descriptor)
+      @used = true
+      writer
+    end
 
     def serialize_with_writer(object, writer)
       raise ArgumentError.new("Panko::Serializer instances are single-use") if @used

@@ -6,6 +6,20 @@ require "active_record/connection_adapters/postgresql_adapter"
 describe Panko::Serializer do
   class FooSerializer < Panko::Serializer
     attributes :name, :address
+
+    links :other
+
+    def id
+      "pretend-id-5678"
+    end
+
+    def type
+      "foos"
+    end
+
+    def other
+      "/my/other/link"
+    end
   end
 
   context "instantiation types" do
@@ -304,7 +318,21 @@ describe Panko::Serializer do
       class PlainFooHolderHasOneSerializer < Panko::Serializer
         attributes :name
 
-        has_one :foo, serializer: FooSerializer
+        has_one :foo, serializer: FooSerializer, link_func: :self_link # self link ends up using FooSerializer and not this serializer
+        links :self_link
+
+        # TODO: this doesn't get pushed, need to adjust stuff
+        def self_link
+          {:self => "my/pretend/link"}
+        end
+
+        def id
+          "pretend-id-1234"
+        end
+
+        def type
+          "my-type"
+        end
       end
 
       foo = PlainFoo.new(Faker::Lorem.word, Faker::Lorem.word)
@@ -315,6 +343,10 @@ describe Panko::Serializer do
           "name" => foo.name,
           "address" => foo.address
         })
+
+      puts PlainFooHolderHasOneSerializer.new.serialize_to_json(foo_holder)
+
+      puts PlainFooHolderHasOneSerializer.new.serialize_to_json_api(foo_holder)
     end
 
     it "accepts serializer name as string" do

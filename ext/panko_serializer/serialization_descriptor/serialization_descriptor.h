@@ -17,6 +17,7 @@ typedef struct _SerializationDescriptor {
   VALUE method_fields;
   VALUE has_one_associations;
   VALUE has_many_associations;
+  VALUE links;
 
   AttributesWriter attributes_writer;
 }* SerializationDescriptor;

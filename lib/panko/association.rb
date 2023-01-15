@@ -6,7 +6,8 @@ module Panko
       Panko::Association.new(
         name_sym,
         name_str,
-        Panko::SerializationDescriptor.duplicate(descriptor)
+        Panko::SerializationDescriptor.duplicate(descriptor),
+        link_func_sym
       )
     end
 

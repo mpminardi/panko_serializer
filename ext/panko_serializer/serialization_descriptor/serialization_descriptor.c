@@ -15,6 +15,7 @@ static void sd_free(SerializationDescriptor sd) {
   sd->has_one_associations = Qnil;
   sd->has_many_associations = Qnil;
   sd->aliases = Qnil;
+  sd->links = Qnil;
   xfree(sd);
 }
 
@@ -26,6 +27,7 @@ void sd_mark(SerializationDescriptor data) {
   rb_gc_mark(data->has_one_associations);
   rb_gc_mark(data->has_many_associations);
   rb_gc_mark(data->aliases);
+  rb_gc_mark(data->links);
 }
 
 static VALUE sd_alloc(VALUE klass) {
@@ -38,6 +40,7 @@ static VALUE sd_alloc(VALUE klass) {
   sd->has_one_associations = Qnil;
   sd->has_many_associations = Qnil;
   sd->aliases = Qnil;
+  sd->links = Qnil;
 
   sd->attributes_writer = create_empty_attributes_writer();
 
@@ -136,6 +139,18 @@ VALUE sd_aliases_aref(VALUE self) {
   return sd->aliases;
 }
 
+VALUE sd_links_set(VALUE self, VALUE links) {
+  SerializationDescriptor sd = (SerializationDescriptor)DATA_PTR(self);
+  sd->links = links;
+  return Qnil;
+}
+
+VALUE sd_links_ref(VALUE self) {
+  SerializationDescriptor sd = (SerializationDescriptor)DATA_PTR(self);
+  return sd->links;
+}
+
+
 void panko_init_serialization_descriptor(VALUE mPanko) {
   object_id = rb_intern("@object");
   sc_id = rb_intern("@sc");
@@ -174,4 +189,10 @@ void panko_init_serialization_descriptor(VALUE mPanko) {
 
   rb_define_method(cSerializationDescriptor, "aliases=", sd_aliases_set, 1);
   rb_define_method(cSerializationDescriptor, "aliases", sd_aliases_aref, 0);
+
+
+  rb_define_method(cSerializationDescriptor, "links=", sd_links_set,
+                   1);
+  rb_define_method(cSerializationDescriptor, "links", sd_links_ref,
+                   0);
 }

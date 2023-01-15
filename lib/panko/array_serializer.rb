@@ -42,10 +42,23 @@ Please pass valid each_serializer to ArraySerializer, for example:
       serialize_with_writer(subjects, Oj::StringWriter.new(mode: :rails)).to_s
     end
 
+    def to_jsonapi
+      serialize_to_jsonapi @subjects
+    end
+
+    def serialize_to_jsonapi(subjects)
+      serialize_with_writer_jsonapi(subjects, Oj::StringWriter.new(mode: :rails)).to_s
+    end
+
     private
 
     def serialize_with_writer(subjects, writer)
       Panko.serialize_objects(subjects.to_a, writer, @descriptor)
+      writer
+    end
+
+    def serialize_with_writer_jsonapi(subjects, writer)
+      Panko.serialize_objects_jsonapi(subjects.to_a, writer, @descriptor)
       writer
     end
   end
