@@ -232,7 +232,7 @@ void serialize_has_many_associations_jsonapi(VALUE object, VALUE str_writer,
       write_value(str_writer, association->name_str, value, Qfalse);
     } else {
       // TODO: need to have serialize_relationship loop through or write another function
-      serialize_relationship(object, str_writer, association, container_serializer);
+      serialize_relationships_internal(value, str_writer, association, container_serializer);
     }
   }
 }
