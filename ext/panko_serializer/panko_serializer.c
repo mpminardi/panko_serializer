@@ -136,6 +136,7 @@ void serialize_links(VALUE object, VALUE str_writer, SerializationDescriptor des
 
 void serialize_relationship(VALUE object, VALUE str_writer, Association association, VALUE original_serializer) {
     rb_funcall(str_writer, push_object_id, 1, association->name_str);
+    rb_funcall(str_writer, push_object_id, 1, DATA_STR);
 
     volatile VALUE link_func, serializer;
 
@@ -162,6 +163,7 @@ void serialize_relationship(VALUE object, VALUE str_writer, Association associat
     }
 
     rb_funcall(str_writer, pop_id, 0);
+    rb_funcall(str_writer, pop_id, 0);
 }
 
 void serialize_has_one_associations_jsonapi(VALUE object, VALUE str_writer,
@@ -183,6 +185,7 @@ void serialize_has_one_associations_jsonapi(VALUE object, VALUE str_writer,
 
 void serialize_relationships_internal(VALUE objects, VALUE str_writer, Association association, VALUE original_serializer) {
     rb_funcall(str_writer, push_array_id, 1, association->name_str);
+    rb_funcall(str_writer, push_object_id, 1, DATA_STR);
 
     volatile VALUE link_func, serializer;
 
@@ -193,17 +196,19 @@ void serialize_relationships_internal(VALUE objects, VALUE str_writer, Associati
       objects = rb_funcall(objects, to_a_id, 0);
     }
 
-
     long i;
     for (i = 0; i < RARRAY_LEN(objects); i++) {
       volatile VALUE object = RARRAY_AREF(objects, i);
-      rb_ivar_set(original_serializer, object_id, object);
+      rb_funcall(str_writer, push_object_id, 1, Qnil);
+      rb_ivar_set(serializer, object_id, object);
       write_value(str_writer, TYPE_STR, rb_funcall(serializer, type_id, 0), Qfalse);
       write_value(str_writer, ID_STR, rb_funcall(serializer, id_id, 0), Qfalse);
+      rb_ivar_set(serializer, object_id, Qnil);
 
       if (!NIL_P(association->link_func_sym)) {
         volatile VALUE result;
 
+        rb_ivar_set(original_serializer, object_id, object);
 
         result = rb_funcall(original_serializer, association->link_func_id, 0);
         if (result != SKIP) {
@@ -211,10 +216,12 @@ void serialize_relationships_internal(VALUE objects, VALUE str_writer, Associati
           write_value(str_writer, LINKS_STR, result, Qfalse);
         }
 
+        rb_ivar_set(original_serializer, object_id, Qnil);
       }
-      rb_ivar_set(original_serializer, object_id, Qnil);
+      rb_funcall(str_writer, pop_id, 0);
     }
 
+    rb_funcall(str_writer, pop_id, 0);
     rb_funcall(str_writer, pop_id, 0);
 }
 
