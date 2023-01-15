@@ -184,8 +184,8 @@ void serialize_has_one_associations_jsonapi(VALUE object, VALUE str_writer,
 }
 
 void serialize_relationships_internal(VALUE objects, VALUE str_writer, Association association, VALUE original_serializer) {
-    rb_funcall(str_writer, push_array_id, 1, association->name_str);
-    rb_funcall(str_writer, push_object_id, 1, DATA_STR);
+    rb_funcall(str_writer, push_object_id, 1, association->name_str);
+    rb_funcall(str_writer, push_array_id, 1, DATA_STR);
 
     volatile VALUE link_func, serializer;
 
