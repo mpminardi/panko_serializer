@@ -79,7 +79,7 @@ module Panko
       def method_added(method)
         super(method)
 
-        puts "ADDED #{method} for #{@_descriptor}"
+        #puts "ADDED #{method} for #{@_descriptor}"
 
         return if @_descriptor.nil?
 

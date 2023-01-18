@@ -344,9 +344,9 @@ describe Panko::Serializer do
           "address" => foo.address
         })
 
-      puts PlainFooHolderHasOneSerializer.new.serialize_to_json(foo_holder)
+      #puts PlainFooHolderHasOneSerializer.new.serialize_to_json(foo_holder)
 
-      puts PlainFooHolderHasOneSerializer.new.serialize_to_json_api(foo_holder)
+      #puts PlainFooHolderHasOneSerializer.new.serialize_to_json_api(foo_holder)
     end
 
     it "accepts serializer name as string" do
@@ -489,6 +489,14 @@ describe Panko::Serializer do
       class FoosHasManyHolderSerializer < Panko::Serializer
         attributes :name
 
+        def id
+          "west"
+        end
+
+        def type
+          "test"
+        end
+
         has_many :foos, serializer: FooSerializer
       end
 
@@ -507,6 +515,11 @@ describe Panko::Serializer do
             "address" => foo2.address
           }
         ])
+
+
+      puts FoosHasManyHolderSerializer.new.serialize_to_json(foos_holder)
+
+      puts FoosHasManyHolderSerializer.new.serialize_to_json_api(foos_holder)
     end
 
     it "accepts serializer name as string" do
