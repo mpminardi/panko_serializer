@@ -62,6 +62,7 @@ module Panko
 
       attr_accessor :_descriptor
 
+      alias :attribute :attributes
       def attributes(*attrs)
         @_descriptor.attributes.push(*attrs.map { |attr| Attribute.create(attr) }).uniq!
       end
@@ -91,6 +92,7 @@ module Panko
         @_descriptor.links << Attribute.create(method) unless deleted_link.nil?
       end
 
+      alias :belongs_to :has_one
       def has_one(name, options = {})
         serializer_const = options[:serializer]
         if serializer_const.is_a?(String)
