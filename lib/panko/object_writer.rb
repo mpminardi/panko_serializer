@@ -30,7 +30,7 @@ class Panko::ObjectWriter
       @next_key = nil
     end
 
-    @values.last[key] = value.as_json&.dasherize # TODO: should we be doing this here / configurable
+    @values.last[key.dasherize] = value.as_json # TODO: should we be doing this here / configurable
   end
 
   def push_json(value, key = nil)
