@@ -25,10 +25,11 @@ static VALUE ID_STR = Qundef;
 static VALUE LINKS_STR = Qundef;
 
 void write_value(VALUE str_writer, VALUE key, VALUE value, VALUE isJson) {
+  volatile VALUE dasherized_name = rb_funcall(key, dasherize_id, 0); // TODO: make configurable
   if (isJson == Qtrue) {
-    rb_funcall(str_writer, push_json_id, 2, value, key);
+    rb_funcall(str_writer, push_json_id, 2, value, dasherized_name);
   } else {
-    rb_funcall(str_writer, push_value_id, 2, value, key);
+    rb_funcall(str_writer, push_value_id, 2, value, dasherized_name);
   }
 }
 
