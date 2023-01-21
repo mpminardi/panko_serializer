@@ -134,7 +134,7 @@ void serialize_links(VALUE object, VALUE str_writer, SerializationDescriptor des
   rb_funcall(str_writer, pop_id, 0);
 }
 
-void serialize_relationship(VALUE object, VALUE str_writer, Association association, VALUE original_serializer) {
+void serialize_relationship(VALUE object, VALUE original_object, VALUE str_writer, Association association, VALUE original_serializer) {
     rb_funcall(str_writer, push_object_id, 1, association->name_str);
     rb_funcall(str_writer, push_object_id, 1, DATA_STR);
 
@@ -153,7 +153,7 @@ void serialize_relationship(VALUE object, VALUE str_writer, Association associat
     if (!NIL_P(association->link_func_sym)) {
       volatile VALUE result;
 
-      rb_ivar_set(original_serializer, object_id, object);
+      rb_ivar_set(original_serializer, object_id, original_object);
 
       result = rb_funcall(original_serializer, association->link_func_id, 0);
       if (result != SKIP) {
@@ -179,12 +179,12 @@ void serialize_has_one_associations_jsonapi(VALUE object, VALUE str_writer,
     if (NIL_P(value)) {
       write_value(str_writer, association->name_str, value, Qfalse);
     } else {
-      serialize_relationship(value, str_writer, association, container_serializer);
+      serialize_relationship(value, object, str_writer, association, container_serializer);
     }
   }
 }
 
-void serialize_relationships_internal(VALUE objects, VALUE str_writer, Association association, VALUE original_serializer) {
+void serialize_relationships_internal(VALUE objects, VALUE original_object, VALUE str_writer, Association association, VALUE original_serializer) {
     rb_funcall(str_writer, push_object_id, 1, association->name_str);
     rb_funcall(str_writer, push_array_id, 1, DATA_STR);
 
@@ -210,7 +210,7 @@ void serialize_relationships_internal(VALUE objects, VALUE str_writer, Associati
       if (!NIL_P(association->link_func_sym)) {
         volatile VALUE result;
 
-        rb_ivar_set(original_serializer, object_id, object);
+        rb_ivar_set(original_serializer, object_id, original_object);
 
         result = rb_funcall(original_serializer, association->link_func_id, 0);
         if (result != SKIP) {
@@ -241,7 +241,7 @@ void serialize_has_many_associations_jsonapi(VALUE object, VALUE str_writer,
       write_value(str_writer, association->name_str, value, Qfalse);
     } else {
       // TODO: need to have serialize_relationship loop through or write another function
-      serialize_relationships_internal(value, str_writer, association, container_serializer);
+      serialize_relationships_internal(value, object, str_writer, association, container_serializer);
     }
   }
 }
