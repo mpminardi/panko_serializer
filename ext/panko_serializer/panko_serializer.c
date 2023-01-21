@@ -14,6 +14,7 @@ static ID object_id;
 static ID serialization_context_id;
 static ID id_id;
 static ID type_id;
+static ID dasherize_id;
 
 static VALUE SKIP = Qundef;
 static VALUE DATA_STR = Qundef;
@@ -412,6 +413,7 @@ void Init_panko_serializer() {
   id_id = rb_intern("id");
   type_id = rb_intern("type");
   serialization_context_id = rb_intern("@serialization_context");
+  dasherize_id = rb_intern("dasherize"); // TODO: actually use this
 
   VALUE mPanko = rb_define_module("Panko");
 
