@@ -148,6 +148,8 @@ void serialize_relationship(VALUE object, VALUE str_writer, Association associat
     write_value(str_writer, ID_STR, rb_funcall(serializer, id_id, 0), Qfalse);
     rb_ivar_set(serializer, object_id, Qnil);
 
+    rb_funcall(str_writer, pop_id, 0);
+
     if (!NIL_P(association->link_func_sym)) {
       volatile VALUE result;
 
@@ -163,7 +165,6 @@ void serialize_relationship(VALUE object, VALUE str_writer, Association associat
     }
 
     rb_funcall(str_writer, pop_id, 0);
-    rb_funcall(str_writer, pop_id, 0);
 }
 
 void serialize_has_one_associations_jsonapi(VALUE object, VALUE str_writer,
@@ -178,7 +179,7 @@ void serialize_has_one_associations_jsonapi(VALUE object, VALUE str_writer,
     if (NIL_P(value)) {
       write_value(str_writer, association->name_str, value, Qfalse);
     } else {
-      serialize_relationship(object, str_writer, association, container_serializer);
+      serialize_relationship(value, str_writer, association, container_serializer);
     }
   }
 }
@@ -205,6 +206,7 @@ void serialize_relationships_internal(VALUE objects, VALUE str_writer, Associati
       write_value(str_writer, ID_STR, rb_funcall(serializer, id_id, 0), Qfalse);
       rb_ivar_set(serializer, object_id, Qnil);
 
+      // TODO: probably need to move this one level out too?
       if (!NIL_P(association->link_func_sym)) {
         volatile VALUE result;
 
