@@ -358,8 +358,8 @@ VALUE serialize_objects_jsonapi(VALUE key, VALUE objects, VALUE str_writer,
                         SerializationDescriptor descriptor) {
   long i;
 
-  rb_funcall(str_writer, push_array_id, 1, key);
-  rb_funcall(str_writer, push_object_id, 1, DATA_STR);
+  rb_funcall(str_writer, push_object_id, 1, Qnil);
+  rb_funcall(str_writer, push_array_id, 1, DATA_STR);
 
   if (!RB_TYPE_P(objects, T_ARRAY)) {
     objects = rb_funcall(objects, to_a_id, 0);

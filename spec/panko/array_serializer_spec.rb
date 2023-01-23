@@ -5,6 +5,14 @@ require "spec_helper"
 describe Panko::ArraySerializer do
   class FooSerializer < Panko::Serializer
     attributes :name, :address
+
+    def id
+      "dummy-id"
+    end
+
+    def type
+      "dummy-type"
+    end
   end
 
   it "throws argument error when each_serializer isnt passed" do
@@ -19,6 +27,8 @@ describe Panko::ArraySerializer do
 
       foo1 = Foo.create(name: Faker::Lorem.word, address: Faker::Lorem.word)
       foo2 = Foo.create(name: Faker::Lorem.word, address: Faker::Lorem.word)
+
+      puts Panko::ArraySerializer.new([foo1, foo2], each_serializer: FooSerializer).to_jsonapi
 
       expect(Foo.all).to serialized_as(array_serializer_factory, [
         {"name" => foo1.name, "address" => foo1.address},
