@@ -324,6 +324,8 @@ VALUE serialize_relationships(VALUE object , VALUE str_writer, SerializationDesc
 
 VALUE serialize_object_jsonapi_internal(VALUE object, VALUE str_writer,
                        SerializationDescriptor descriptor) {
+  sd_set_writer(descriptor, object);
+
   rb_ivar_set(descriptor->serializer, object_id, object);
   write_value(str_writer, ID_STR, rb_funcall(descriptor->serializer, id_id, 0), Qfalse);
   write_value(str_writer, TYPE_STR, rb_funcall(descriptor->serializer, type_id, 0), Qfalse);
@@ -342,8 +344,6 @@ VALUE serialize_object_jsonapi_internal(VALUE object, VALUE str_writer,
 
 VALUE serialize_object_jsonapi(VALUE object, VALUE str_writer,
                        SerializationDescriptor descriptor) {
-  sd_set_writer(descriptor, object);
-
   rb_funcall(str_writer, push_object_id, 1, Qnil);
   rb_funcall(str_writer, push_object_id, 1, DATA_STR);
 
