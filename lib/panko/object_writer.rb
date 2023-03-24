@@ -63,6 +63,6 @@ class Panko::ObjectWriter
 
   def output
     raise "Output is called before poping all" unless @values.empty?
-    @output
+    @output.transform_keys! &:dasherize
   end
 end
